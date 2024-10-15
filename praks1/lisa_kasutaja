@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# skript kontrollib kas kasutaja eksisteerib ning loob kasutaja; lisab vajalikud failid
+# ja oigused
+
+if [ -z "$1" ]; then
+    echo "Viga: Kasutajanimi ei ole antud!"
+    echo "Kasutamine: $0 <kasutajanimi>"
+    exit 1
+fi
+
+KASUTAJA=$1
+
+if id "$KASUTAJA" &>/dev/null; then
+    echo "Kasutaja $KASUTAJA juba eksisteerib!"
+    exit 1
+fi
+
+sudo useradd -m -d /home/$KASUTAJA -s /bin/bash $KASUTAJA
+
+if [ $? -ne 0 ]; then
+    echo "Kasutaja loomine ebaõnnestus!"
+    exit 1
+fi
+
+sudo cp /etc/skel/.bashrc /home/$KASUTAJA/.bashrc
+sudo cp /etc/skel/.profile /home/$KASUTAJA/.profile
+
+sudo mkdir -p /home/$KASUTAJA/.config
+
+sudo chown -R $KASUTAJA:$KASUTAJA /home/$KASUTAJA
+
+echo "Kasutaja $KASUTAJA on edukalt loodud!"
