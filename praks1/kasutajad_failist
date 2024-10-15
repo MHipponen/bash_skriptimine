@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "Kasutusjuhend: $0 failinimi"
+    exit 1
+fi
+
+failinimi=$1
+
+if [ -f "$failinimi" ] && [ -r "$failinimi" ]; then
+    for nimi in $(cat "$failinimi"); do
+        echo "Lisan kasutajat: $nimi"
+        ./lisa_kasutaja "$nimi"
+        if [ $? -ne 0 ]; then
+            echo "Kasutaja lisamine ebaõnnestus: $nimi"
+        fi
+    done
+else
+    echo "Probleem failiga $failinimi: Fail ei eksisteeri või ei ole loetav"
+fi
