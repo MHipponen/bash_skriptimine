@@ -16,18 +16,11 @@ if id "$KASUTAJA" &>/dev/null; then
     exit 1
 fi
 
-sudo useradd -m -d /home/$KASUTAJA -s /bin/bash $KASUTAJA
-
+sudo useradd $KASUTAJA -m -s /bin/bash
 if [ $? -ne 0 ]; then
     echo "Kasutaja loomine ebaõnnestus!"
+    echo "Veakood $?"
     exit 1
 fi
-
-sudo cp /etc/skel/.bashrc /home/$KASUTAJA/.bashrc
-sudo cp /etc/skel/.profile /home/$KASUTAJA/.profile
-
-sudo mkdir -p /home/$KASUTAJA/.config
-
-sudo chown -R $KASUTAJA:$KASUTAJA /home/$KASUTAJA
 
 echo "Kasutaja $KASUTAJA on edukalt loodud!"
