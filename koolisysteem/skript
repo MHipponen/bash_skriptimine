@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# skript võimaldab luua kasutaja ning maarata ta kas gruppi opetajad voi opilased, seadistab vastavalt
+# kasutaja soovile  parooli  ning loob kõik muu vajaliku
+
+if [[ $EUID -ne 0 ]]; then
+   echo "See skript tuleb käivitada juurprivileegidega (kasuta sudo)."
+   exit 1
+fi
+
+echo "Kooli kasutajate lisamise skript käivitatud."
+
+while true; do
+    echo ""
+    read -p "Sisestage kasutajanimi (või 'x' väljumiseks): " username
+
+    if [[ "$username" == "x" || "$username" == "X" ]]; then
+        echo "Skript lõpetab töö. Head päeva!"
+        exit 0
+    fi
+
+    if [[ ! "$username" =~ ^[a-zA-Z][a-zA-Z0-9_-]{0,31}$ ]]; then
+        echo "Viga: Ebasobiv kasutajanimi. Kasutajanimi peab algama tähega, sisaldama ainult tähti, numbreid, - või _, ja olema kuni 32 tähemärki pikk."
+        continue
+    fi
+
+    if id "$username" &>/dev/null; then
+        echo "Viga: Kasutaja '$username' juba eksisteerib."
+        continue
+    fi
+
+    read -p "Sisestage grupi nimi ('opilased' või 'opetajad'): " group
+
+    if [[ "$group" != "opilased" && "$group" != "opetajad" ]]; then
+        echo "Viga: Vigane grupi nimi. Lubatud grupid on 'opilased' ja 'opetajad'."
+        continue
+    fi
+
+    while true; do
+        read -s -p "Sisestage parool kasutajale: " password1
+        echo
+        read -s -p "Korrake parool: " password2
+        echo
+        if [[ "$password1" != "$password2" ]]; then
+            echo "Viga: Paroolid ei kattu. Proovige uuesti."
+        elif [[ -z "$password1" ]]; then
+            echo "Viga: Parool ei saa olla tühi. Proovige uuesti."
+        else
+            break
+        fi
+    done
+
+    useradd -m -s /bin/bash -G "$group" "$username"
+    if [[ $? -ne 0 ]]; then
+        echo "Viga: Kasutaja '$username' lisamine ebaõnnestus."
+        continue
+    fi
+
+    echo "$username:$password1" | chpasswd
+    if [[ $? -ne 0 ]]; then
+        echo "Viga: Parooli seadmine kasutajale '$username' ebaõnnestus."
+        userdel -r "$username"
+        continue
+    fi
+
+    chown "$username":"$group" "/home/$username"
+    if [[ $? -ne 0 ]]; then
+        echo "Viga: Kodukataloogi omandiõiguse seadmine kasutajale '$username' ebaõnnestus."
+        continue
+    fi
+
+    chmod 755 "/home/$username"
+    if [[ $? -ne 0 ]]; then
+        echo "Viga: Kodukataloogi õiguste seadmine kasutajale '$username' ebaõnnestus."
+        continue
+    fi
+
+    echo "--------------------------------------------------"
+    echo "Kasutaja edukalt loodud!"
+    echo "Nimi: $username"
+    echo "Grupp: $group"
+    echo "Kodukataloog: /home/$username"
+    echo "Parool: $password1"
+    echo "Shell: /bin/bash"
+    echo "--------------------------------------------------"
+
+done
