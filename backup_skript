@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# skript teeb kõikide kasutajate /home kaustast backupi ning salvestab selle /backupid/home_bcp kausta
+
+backup_dir="/backupid/home_bcp"
+date=$(date +%d.%m.%Y)
+
+sudo mkdir -p "$backup_dir"
+
+for user_dir in /home/*; do
+    if [ -d "$user_dir" ]; then
+        user=$(basename "$user_dir")
+        sudo tar -czvf "$backup_dir/$user.$date.tar.gz" "$user_dir"
+    fi
+done
+
+echo "Kõikide kasutajate kodukataloogid on varundatud kausta $backup_dir."
+
