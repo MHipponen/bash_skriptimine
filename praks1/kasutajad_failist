@@ -8,9 +8,11 @@ fi
 failinimi=$1
 
 if [ -f "$failinimi" ] && [ -r "$failinimi" ]; then
-    for nimi in $(cat "$failinimi"); do
-        echo "Lisan kasutajat: $nimi"
-        ./lisa_kasutaja "$nimi"
+    for rida in $(cat "$failinimi"); do
+	KASUTAJA=$(echo "$rida" | cut -f1 -d:)
+	echo "Lisan kasutajat: $KASUTAJA"
+        ./lisa_kasutaja "$KASUTAJA"
+	echo "$rida" | sudo chpasswd
         if [ $? -ne 0 ]; then
             echo "Kasutaja lisamine ebaõnnestus: $nimi"
         fi
