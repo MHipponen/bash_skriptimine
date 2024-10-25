@@ -3,33 +3,40 @@
 # skript võtab argumendiks failinime, kus on kasutajad ning loob need kasutajad
 # ja genereerib neile parooli. Mõlema tegemise õnnestumisel logib kasutajanimed
 # ja paroolid faili nimega loodud_kasutajad_paroolidega
+# kontrollib, kas kasutaja on root, vastasel juhul annab veateate
 
-if [ $# -ne 1 ]; then
-    echo "Kasutusjuhend: $0 failinimi"
-    exit 1
-fi
+kaivitatav_kasutaja=$(whoami)
+if [ $kaivitatav_kasutaja = "root" ]; then
 
-failinimi=$1
-
-if [ -f "$failinimi" ] && [ -r "$failinimi" ]; then
-    for rida in $(cat "$failinimi"); do
-	echo "Lisan kasutajat: $rida"
-	sudo useradd $rida -m -s /bin/bash
-        if [ $? -ne 0 ]; then
-            echo "Kasutaja lisamine ebaõnnestus: $rida"
-        else
-	    echo "Kasutaja lisamine õnnestus: $rida"
+	if [ $# -ne 1 ]; then
+    		echo "Kasutusjuhend: $0 failinimi"
+    	exit 1
 	fi
-	echo "Muudan parooli kasutajale: $rida"
-	parool=$(pwgen -s 8 -1)
-	echo "$rida:$parool" | sudo chpasswd
-	if [ $? -ne 0 ]; then
-		echo "Kasutaja $rida parooli lisamine ebaõnnestus"
+
+	failinimi=$1
+
+	if [ -f "$failinimi" ] && [ -r "$failinimi" ]; then
+    		for rida in $(cat "$failinimi"); do
+		echo "Lisan kasutajat: $rida"
+		sudo useradd $rida -m -s /bin/bash
+        	if [ $? -ne 0 ]; then
+            		echo "Kasutaja lisamine ebaõnnestus: $rida"
+        	else
+	    		echo "Kasutaja lisamine õnnestus: $rida"
+		fi
+		echo "Muudan parooli kasutajale: $rida"
+		parool=$(pwgen -s 8 -1)
+		echo "$rida:$parool" | sudo chpasswd
+		if [ $? -ne 0 ]; then
+			echo "Kasutaja $rida parooli lisamine ebaõnnestus"
+		else
+			echo "Kasutaja $rida parooli lisamine õnnestus"
+		fi
+		echo "$rida:$parool" >> loodud_kasutajad_paroolidega
+    	done
 	else
-		echo "Kasutaja $rida parooli lisamine õnnestus"
+    		echo "Probleem failiga $failinimi: Fail ei eksisteeri või ei ole loetav"
 	fi
-	echo "$rida:$parool" >> loodud_kasutajad_paroolidega
-    done
 else
-    echo "Probleem failiga $failinimi: Fail ei eksisteeri või ei ole loetav"
+	echo "Sul ei ole õigust antud skripti käivitamiseks"
 fi
