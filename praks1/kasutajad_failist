@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# skript võtab argumendiks failinime, kus on kasutajad ja paroolid ning teeb kasutaja ning seadistab talle parooli
+
 if [ $# -ne 1 ]; then
     echo "Kasutusjuhend: $0 failinimi"
     exit 1
