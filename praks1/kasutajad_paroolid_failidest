@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# skript võtab argumendiks kasutajate failinime ning paroolide failinime ning loob
+# ja seadistab kasutajatele paroolid
+
+if [ $# -ne 2 ]; then
+    echo "Kasutusjuhend: $0 kasutajate_failinimi $1 paroolide_failinimi"
+    exit 1
+fi
+
+kasutajate_failinimi=$1
+paroolide_failinimi=$2
+
+if [ -f "$kasutajate_failinimi" ] && [ -r "$kasutajate_failinimi" ] && [ -f "$paroolide_failinimi" ] && [ -r "$paroolide_failinimi" ]; then
+    for rida in $(cat "$kasutajate_failinimi"); do
+	KASUTAJA=$(echo "$rida")
+	echo "Lisan kasutajat: $KASUTAJA"
+	if id "$KASUTAJA" &>/dev/null; then
+		echo "Kasutaja $KASUTAJA juba eksisteerib!"
+		exit 1
+	fi
+	sudo useradd $KASUTAJA -m -s /bin/bash
+        if [ $? -ne 0 ]; then
+            echo "Kasutaja lisamine ebaõnnestus: $KASUTAJA"
+        fi
+	echo "Kasutaja $KASUTAJA on edukalt loodud!"
+	for parool in $(cat "$paroolide_failinimi"); do
+		echo "$KASUTAJA:$parool" | sudo chpasswd
+	done
+    done
+else
+    echo "Probleem failiga $kasutajate_failinimi või $paroolide_failinimi: Fail(id) ei eksisteeri või ei ole loetav"
+fi
